@@ -1,28 +1,35 @@
 #!/usr/bin/python3
-"""Python script to export data in the JSON format"""
+"""
+Request from API; Return TODO list progress given employee ID
+Export this data to JSON
+"""
+from sys import argv
 import json
 import requests
-import sys
+
+
+def to_json():
+    """return API data"""
+    users = requests.get("http://jsonplaceholder.typicode.com/users")
+    for u in users.json():
+        if u.get('id') == int(argv[1]):
+            USERNAME = (u.get('username'))
+            break
+    TASK_STATUS_TITLE = []
+    todos = requests.get("http://jsonplaceholder.typicode.com/todos")
+    for t in todos.json():
+        if t.get('userId') == int(argv[1]):
+            TASK_STATUS_TITLE.append((t.get('completed'), t.get('title')))
+
+    """export to json"""
+    t = []
+    for task in TASK_STATUS_TITLE:
+        t.append({"task": task[1], "completed": task[0], "username": USERNAME})
+    data = {str(argv[1]): t}
+    filename = "{}.json".format(argv[1])
+    with open(filename, "w") as f:
+        json.dump(data, f)
+
 
 if __name__ == "__main__":
-    ID = sys.argv[1]
-    url = 'https://jsonplaceholder.typicode.com/'
-    user = requests.get(url + 'users/{}'.format(ID)).json()
-    todo = requests.get(url + 'todos', auth=('user', 'pass')).json()
-    user_name = user['username']
-    value = []
-    mydict = {}
-    for sub_dict in todo:
-        if ID == str(sub_dict.get('userId')):
-            comp = sub_dict.get('completed')
-            sub_dict['task'] = sub_dict['title']
-            del sub_dict['completed']
-            del sub_dict['userId']
-            del sub_dict['id']
-            del sub_dict['title']
-            sub_dict['completed'] = comp
-            sub_dict['username'] = user_name
-            value.append(sub_dict)
-    mydict[ID] = value
-    with open('{}.json'.format(ID), 'w') as f:
-        json.dump(mydict, f)
+    to_json()

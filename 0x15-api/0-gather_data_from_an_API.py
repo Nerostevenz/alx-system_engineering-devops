@@ -1,31 +1,34 @@
 #!/usr/bin/python3
-"""Returns to-do list information for a given employee ID."""
-import sys
+"""
+Request from API; Return TODO list progress given employee ID
+"""
 import requests
+from sys import argv
+
+
+def display():
+    """return API data"""
+    users = requests.get("http://jsonplaceholder.typicode.com/users")
+    for u in users.json():
+        if u.get('id') == int(argv[1]):
+            EMPLOYEE_NAME = (u.get('name'))
+            break
+    TOTAL_NUM_OF_TASKS = 0
+    NUMBER_OF_DONE_TASKS = 0
+    TASK_TITLE = []
+    todos = requests.get("http://jsonplaceholder.typicode.com/todos")
+    for t in todos.json():
+        if t.get('userId') == int(argv[1]):
+            TOTAL_NUM_OF_TASKS += 1
+            if t.get('completed') is True:
+                    NUMBER_OF_DONE_TASKS += 1
+                    TASK_TITLE.append(t.get('title'))
+    print("Employee {} is done with tasks({}/{}):".format(EMPLOYEE_NAME,
+                                                          NUMBER_OF_DONE_TASKS,
+                                                          TOTAL_NUM_OF_TASKS))
+    for task in TASK_TITLE:
+        print("\t {}".format(task))
+
 
 if __name__ == "__main__":
-    all_tasks = 0
-    comp_tasks = 0
-    todos = requests.get(
-            "https://jsonplaceholder.typicode.com/todos", auth=(
-            'user', 'pass'))
-    users = requests.get(
-            "https://jsonplaceholder.typicode.com/users", auth=(
-            'user', 'pass'))
-
-    ID = sys.argv[1]
-
-    for user in users.json():
-        if ID == str(user["id"]):
-            user_name =  user["name"]
-
-    for todo in todos.json():
-        if ID == str(todo["userId"]):
-            all_tasks += 1
-            if todo["completed"]:
-                comp_tasks += 1
-    print("Employee {} is done with tasks({}/{}):".format(
-                    user_name, comp_tasks, all_tasks))
-    for complete in todos.json():
-        if complete.get("completed") and ID == str(complete["userId"]):
-                print("{}".format(complete["title"]))
+    display())
